@@ -33,7 +33,7 @@ class Device:
         d = p[DNS]
         # dns.count.queries == 1 && dns.count.answers == 0 && dns.count.auth_rr == 0 && dns.count.add_rr == 0
         if d.ancount == 0 and d.arcount == 0 and d.ancount == 0:
-            service_name = d[DNSQR].qname
+            service_name = d[DNSQR].qname.decode('utf8')
             if service_name not in self.services:
                 self.services[service_name] = 1
             else:
