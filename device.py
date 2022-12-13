@@ -1,9 +1,7 @@
 from scapy.all import *
+import service
 
 class Device:
-
-
-
     def __init__(self, p):
         self.probable_hostname = ""
         self.mac_address = ""
@@ -35,9 +33,9 @@ class Device:
         if d.ancount == 0 and d.arcount == 0 and d.ancount == 0:
             service_name = d[DNSQR].qname.decode('utf8')
             if service_name not in self.services:
-                self.services[service_name] = 1
+                self.services[service_name] = service.Service(service_name)
             else:
-                self.services[service_name] = self.services[service_name] + 1
+                self.services[service_name].update()
         if DNSQR not in d:
             return
         qr = d[DNSQR]

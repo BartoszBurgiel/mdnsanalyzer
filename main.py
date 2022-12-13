@@ -1,24 +1,10 @@
 from scapy.all import *
-import device
+import result
+
+res = result.Result()
 
 
-summary = dict()
+sniffed = sniff(offline='all.pcap', filter='udp port 5353', prn=res.update)
 
-def hereweare(p):
+print(res)
 
-
-    if p[Ether].src not in summary:
-        de = device.Device(p)
-        if de.mac_address == "":
-            return
-        summary[p[Ether].src] = de
-    else:
-        summary[p[Ether].src].update(p)
-
-
-
-
-sniffed = sniff(offline='all.pcap', filter='udp port 5353', prn=hereweare)
-print(sniffed)
-
-print(summary)
