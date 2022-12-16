@@ -21,6 +21,7 @@ class Result:
         out = ""
         for v in self.devices.values():
             out += str(v)
+            out += "\n"
 
         return out
 

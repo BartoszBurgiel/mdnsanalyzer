@@ -7,6 +7,8 @@ class Device:
         self.mac_address = ""
         self.packets = 1
         self.services = dict()
+        self.device_info = dict()
+
         if Ether not in p:
             return
         if DNS not in p[Ether]:
@@ -18,8 +20,10 @@ class Device:
         if qr.qtype != 255:
             return
         
-        self.mac_address = p[Ether].src
         service_name = qr.qname.decode('utf8')
+        if "ip6.arpa" in service_name:
+            return
+        self.mac_address = p[Ether].src
         self.probable_hostname = service_name.split(".", 1)[0]
 
 
@@ -29,7 +33,10 @@ class Device:
         if DNS not in p[Ether]:
             return
         d = p[DNS]
-        # dns.count.queries == 1 && dns.count.answers == 0 && dns.count.auth_rr == 0 && dns.count.add_rr == 0
+
+        if DNSRR in d:
+            self.get_device_info(p)
+
         if d.ancount == 0 and d.arcount == 0 and d.ancount == 0:
             service_name = d[DNSQR].qname.decode('utf8')
             if service_name not in self.services:
@@ -45,19 +52,30 @@ class Device:
         if self.mac_address != p[Ether].src:
             return
 
-        service_name = qr.qname.decode('utf8')
         self.packets = self.packets + 1
-        if self.probable_hostname == "":
-            self.probable_hostname = service_name.split(".", 1)[0]
 
+    def get_device_info(self, p):
+        d = p[DNS][DNSRR]
+        info = d.rdata
+        device_id = 'deviceid={}'.format(self.mac_address.upper())
 
+        if type(info) != list:
+            return
 
+        if bytearray(device_id, encoding='utf8') in info:
+            for i in info:
+                si = i.decode('utf8')
+                kv = si.split('=')
+                self.device_info[kv[0]] = kv[1]
 
 
 
     def __str__(self):
-        return "\nprobable hostname: " + self.probable_hostname + "\nmac address: " + self.mac_address + "\npackets: " + str(self.packets) + "\nservices: " + str(self.services) + "\n"
+        ser = ""
+        for s in self.services.items():
+            ser += str(s)
+
+        return "Probable hostname: {}\nMAC Address: {}\nPacket count: {}\nServices: {}\nInfo: {}\n".format(self.probable_hostname, self.mac_address, str(self.packets), ser, self.device_info)
 
     def __repr__(self):
-        return "\nprobable hostname: " + self.probable_hostname + "\nmac address: " + self.mac_address + "\npackets: " + str(self.packets) + "\nservices: " + str(self.services) + "\n"
-
+        return self.__str__()
