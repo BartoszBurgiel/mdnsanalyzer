@@ -1,10 +1,7 @@
 from scapy.all import *
 import result
+import args
 
-res = result.Result()
+args.analyze()
 
-
-sniffed = sniff(offline='all.pcap', filter='udp port 5353', prn=res.update)
-
-print(res)
-
+print(args.result)

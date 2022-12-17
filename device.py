@@ -30,29 +30,23 @@ class Device:
     def update(self, p):
         if Ether not in p:
             return
+        if self.mac_address != p[Ether].src:
+            return
+        self.packets = self.packets + 1
+
         if DNS not in p[Ether]:
             return
         d = p[DNS]
 
         if DNSRR in d:
             self.get_device_info(p)
+            return
 
         if d.ancount == 0 and d.arcount == 0 and d.ancount == 0:
-            service_name = d[DNSQR].qname.decode('utf8')
-            if service_name not in self.services:
-                self.services[service_name] = service.Service(service_name)
-            else:
-                self.services[service_name].update()
-        if DNSQR not in d:
-            return
-        qr = d[DNSQR]
-        if qr.qtype != 255:
+            self.get_services(p)
             return
         
-        if self.mac_address != p[Ether].src:
-            return
 
-        self.packets = self.packets + 1
 
     def get_device_info(self, p):
         d = p[DNS][DNSRR]
@@ -68,6 +62,18 @@ class Device:
                 kv = si.split('=')
                 self.device_info[kv[0]] = kv[1]
 
+    def get_services(self, p):
+        d = p[DNS]
+        if DNSQR not in d:
+            return
+        qr = d[DNSQR]
+        if qr.qtype != 255:
+            return
+        service_name = d[DNSQR].qname.decode('utf8')
+        if service_name not in self.services:
+            self.services[service_name] = service.Service(service_name)
+        else:
+            self.services[service_name].update()
 
 
     def __str__(self):
