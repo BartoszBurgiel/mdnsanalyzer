@@ -19,10 +19,10 @@ class Result:
 
 
     def csv(self):
-        print("name,mac_address,packet_count,n_services")
+        print("name,producer,model,mac_address,packet_count,n_services")
 
         for s in self.devices.values():
-            print("{},{},{},{}".format(s.probable_hostname, s.mac_address,s.packets,len(s.services)))
+            print("{},{},{},{},{},{}".format(s.probable_hostname, s.probable_producer, s.probable_model, s.mac_address,s.packets,len(s.services)))
 
     def __str__(self):
         out = ""
