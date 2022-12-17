@@ -1,5 +1,7 @@
 from scapy.all import *
+import json
 import service
+import re
 
 class Device:
     def __init__(self, p):
@@ -24,7 +26,7 @@ class Device:
         if "ip6.arpa" in service_name:
             return
         self.mac_address = p[Ether].src
-        self.probable_hostname = service_name.split(".", 1)[0]
+        self.probable_hostname = self.determine_probable_hostname(service_name)
 
 
     def update(self, p):
@@ -74,7 +76,15 @@ class Device:
             self.services[service_name] = service.Service(service_name)
         else:
             self.services[service_name].update()
+    
+    def determine_probable_hostname(self, name):
+        pattern = "(\._[a-zA-Z\-]+\._(tcp|udp))?\.local\."
+        head = re.sub(pattern, "", name)
 
+        if '._mi-connect' in name:
+            prop = json.loads(head)
+            return prop['nm']
+        return head
 
     def __str__(self):
         ser = ""

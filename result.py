@@ -17,6 +17,13 @@ class Result:
             self.devices[mac].update(p)
 
 
+
+    def csv(self):
+        print("name,mac_address,packet_count,n_services")
+
+        for s in self.devices.values():
+            print("{},{},{},{}".format(s.probable_hostname, s.mac_address,s.packets,len(s.services)))
+
     def __str__(self):
         out = ""
         for v in self.devices.values():
