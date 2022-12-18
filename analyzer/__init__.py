@@ -51,7 +51,7 @@ def analyze():
         default_filter += " and {}".format(args.filter)
     
     if args.input == "live":
-        Thread(target=printer, args=[res]).start()
+        Thread(target=printer, args=[res, args]).start()
         sniff(count=args.count, filter=default_filter, iface=args.interface[0], prn=res.update)
     else:
         for f in args.read_file:
@@ -68,8 +68,10 @@ def analyze():
     res.print_report()
 
 
-def printer(res): 
+def printer(res, args): 
     while True:
         os.system('clear')
         res.table()
-        time.sleep(5)
+        time.sleep(3)
+        if res.packets >= args.count and args.count != 0:
+            return
