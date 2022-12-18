@@ -1,6 +1,7 @@
 from scapy.all import *
 import json
 import re
+from tabulate import tabulate
 
 class Device:
     def __init__(self, p):
@@ -119,11 +120,12 @@ class Device:
         return "unknown"
 
     def __str__(self):
-        ser = ""
+        ser_head = ["service", "count"]
+        ser_rows = []
         for s in self.services.items():
-            ser += str(s)
+            ser_rows.append(list(s))
 
-        return "Probable hostname: {}\nProbable producer: {}\nIP Address: {}\nMAC Address: {}\nPacket count: {}\nServices: {}\n".format(self.probable_hostname, self.probable_producer, self.ip_address, self.mac_address, str(self.packets), ser)
+        return "\nProbable hostname: \t{}\nProbable producer: \t{}\nIP Address: \t\t{}\nMAC Address: \t\t{}\nPacket count: \t\t{}\nServices: \n{}\n".format(self.probable_hostname, self.probable_producer, self.ip_address, self.mac_address, str(self.packets), tabulate(ser_rows, headers=ser_head))
 
     def __repr__(self):
         return self.__str__()
