@@ -1,4 +1,4 @@
-import device
+from analyzer.device import Device
 from scapy.layers.l2 import Ether
 from tabulate import tabulate
 
@@ -10,7 +10,7 @@ class Result:
     def update(self, p):
         mac = p[Ether].src
         if mac not in self.devices:
-            de = device.Device(p)
+            de = Device(p)
             if de.mac_address == "":
                 return
             self.devices[mac] = de

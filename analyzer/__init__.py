@@ -1,7 +1,8 @@
 import argparse
+from sys import argv, exit
 from scapy.interfaces import get_if_list
 from scapy.sendrecv import sniff
-import result
+import analyzer.result
 
 parser = argparse.ArgumentParser(
         prog="mdns-analyzer",
@@ -25,11 +26,19 @@ file_config = input_subparsers.add_parser("file", help="provide file(s) to analy
 file_config.add_argument('-r', '--read-file', nargs="+", metavar="capture.pcap", help="mdns-analyzer will read the provided file(s)", required=True)
 
 
-args = parser.parse_args()
-result = result.Result()
 
 def analyze():
-    
+    if len(argv) < 2:
+        parser.print_help()
+        exit(1)
+    try:
+        args = parser.parse_args()
+    except:
+        parser.print_help()
+        return
+
+    res = result.Result()
+
     default_filter = "udp port 5353"
 
     if args.mac != None:
@@ -39,16 +48,14 @@ def analyze():
         default_filter += " and {}".format(args.filter)
     
     if args.input == "live":
-        sniff(count=args.count, filter=default_filter, iface=args.interface[0], prn=result.update)
+        sniff(count=args.count, filter=default_filter, iface=args.interface[0], prn=res.update)
     else:
         for f in args.read_file:
-            sniff(offline=f, filter=default_filter, count=args.count, prn=result.update, quiet=True)
-
+            sniff(offline=f, filter=default_filter, count=args.count, prn=res.update, quiet=True)
 
     if args.csv:
-        result.csv()
+        res.csv()
     elif args.table:
-        result.table()
+        res.table()
     else:
-        print("just printing resoults...")
-        print(result)
+        print(res)

@@ -1,5 +1,6 @@
-from scapy.all import *
-import result
-import args
+from analyzer import analyze
 
-args.analyze()
+#!/usr/bin/env python3
+
+if __name__ == "__main__":
+    analyze()
