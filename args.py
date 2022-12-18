@@ -38,7 +38,8 @@ def analyze():
             sniff(offline=f, filter=default_filter, count=args.count, prn=result.update, quiet=True)
 
 
-    if args.csv != None:
+    if args.csv:
         result.csv()
     else:
+        print("just printing resoults...")
         print(result)

@@ -1,6 +1,5 @@
 from scapy.all import *
 import json
-import service
 import re
 
 class Device:
@@ -50,9 +49,7 @@ class Device:
             self.get_device_info(p)
             return
 
-        if d.ancount == 0 and d.arcount == 0 and d.ancount == 0:
-            self.get_services(p)
-            return
+        self.get_services(p)
         
 
 
@@ -71,18 +68,26 @@ class Device:
                 self.device_info[kv[0]] = re.sub(",",".", kv[1])
                 if kv[0] == "model":
                     self.probable_model = re.sub(",",".", kv[1])
+
     def get_services(self, p):
         d = p[DNS]
-        if DNSQR not in d:
-            return
-        qr = d[DNSQR]
-        if qr.qtype != 255:
-            return
-        service_name = d[DNSQR].qname.decode('utf8')
-        if service_name not in self.services:
-            self.services[service_name] = service.Service(service_name)
-        else:
-            self.services[service_name].update()
+        cnt = d.qdcount
+        for i in range(cnt):
+            if hasattr(d[i], "qname"):
+                if d[i].qtype != 12:
+                    continue
+                name = d[i].qname.decode('utf8')
+                
+                if self.probable_producer == "unknown":
+                    low = name.lower()
+                    if any(map(low.__contains__, ['airplay', 'sleep-proxy', 'companion-link', 'macbook', 'ipod'])):
+                        self.probable_producer= "Apple"
+
+                if name not in self.services:
+                    self.services[name] = 1
+                else:
+                    self.services[name] = self.services[name]+1
+
     
     def determine_probable_hostname(self, d):
         name = ""
@@ -97,13 +102,16 @@ class Device:
 
         if name[0] == "_" or ".ip6.arpa." in name:
             return "unknown"
+
         pattern = "(\._[a-zA-Z\-]+\._(tcp|udp))?\.local\."
         head = re.sub(pattern, "", name)
         if '._mi-connect' in name:
             prop = json.loads(head)
             return prop['nm']
+
         if '._tcp' in head:
             return "unknown"
+
         return head
 
     def determine_probable_producer(self, name):
@@ -124,7 +132,7 @@ class Device:
         for s in self.services.items():
             ser += str(s)
 
-        return "Probable hostname: {}\nMAC Address: {}\nPacket count: {}\nServices: {}\nInfo: {}\n".format(self.probable_hostname, self.mac_address, str(self.packets), ser, self.device_info)
+        return "Probable hostname: {}\nMAC Address: {}\nPacket count: {}\nServices: {}\n".format(self.probable_hostname, self.mac_address, str(self.packets), ser)
 
     def __repr__(self):
         return self.__str__()
