@@ -47,7 +47,6 @@ class Device:
 
         if DNSRR in d:
             self.get_device_info(p)
-            return
 
         self.get_services(p)
         
@@ -73,10 +72,10 @@ class Device:
         d = p[DNS]
         cnt = d.qdcount
         for i in range(cnt):
-            if hasattr(d[i], "qname"):
-                if d[i].qtype != 12:
+            if hasattr(d.qd[i], "qname"):
+                if d.qd[i].qtype != 12:
                     continue
-                name = d[i].qname.decode('utf8')
+                name = d.qd[i].qname.decode('utf8')
                 
                 if self.probable_producer == "unknown":
                     low = name.lower()
