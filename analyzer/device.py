@@ -38,7 +38,8 @@ class Device:
             if IP in p:
                 self.ip_address = p[IP].src
 
-
+        if DNS not in p:
+            return
         d = p[DNS]
         if self.probable_hostname == "unknown":
             self.probable_hostname = self.determine_probable_hostname(d)
