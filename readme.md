@@ -35,3 +35,37 @@ optional arguments:
 With great power comes great responsibility
 
 ```
+
+### Sample output
+
+#### Many packages as a table
+Command: `python3 main.py -c 0 -t file -r <some_capture>.pcap`
+Output:
+
+```
+name                                  producer    model           ip_address     mac_address          packet_count    n_services
+------------------------------------  ----------  --------------  -------------  -----------------  --------------  ------------
+mallory-iphone                        Apple       unknown         1.2.3.4        01:02:03:04:05:06             909             5
+iPad von Bob                          Apple       unknown         1.2.3.5        01:02:03:04:05:06             452             4
+Alice's iPhone (2)                    Apple       unknown         1.2.3.6        01:02:03:04:05:06             204             6
+Carol MacBook Air                     Apple       MacBookAir9.1   1.2.3.7        01:02:03:04:05:07             241            18
+```
+
+#### Packages from one device 
+Command: `python3 main.py -m '01:02:03:04:05:06' file -r <some_capture>.pcap`
+Output:
+```
+Probable hostname:      mallory-iphone
+Probable producer:      Apple
+IP Address:             1.2.3.4
+MAC Address:            01:02:03:04:05:06
+Packet count:           97
+Services: 
+service                        count
+---------------------------  -------
+_service1._tcp.local.             21
+_cool-service._tcp.local.         21
+_fun._udp.local.                  21
+_here-i-am._tcp.local.             5
+
+```
