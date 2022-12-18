@@ -1,5 +1,6 @@
 import device
 from scapy.layers.l2 import Ether
+from tabulate import tabulate
 
 class Result:
 
@@ -32,3 +33,11 @@ class Result:
 
         return out
 
+
+    def table(self):
+        headers = ["name","producer","model","mac_address","packet_count","n_services"]
+        data = []
+        for s in self.devices.values():
+            data.append([s.probable_hostname, s.probable_producer, s.probable_model, s.mac_address,s.packets,len(s.services)])
+
+        print(tabulate(data, headers=headers))

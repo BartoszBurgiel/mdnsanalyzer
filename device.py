@@ -131,7 +131,7 @@ class Device:
         for s in self.services.items():
             ser += str(s)
 
-        return "Probable hostname: {}\nMAC Address: {}\nPacket count: {}\nServices: {}\n".format(self.probable_hostname, self.mac_address, str(self.packets), ser)
+        return "Probable hostname: {}\nProbable producer: {}\nMAC Address: {}\nPacket count: {}\nServices: {}\n".format(self.probable_hostname, self.probable_producer, self.mac_address, str(self.packets), ser)
 
     def __repr__(self):
         return self.__str__()

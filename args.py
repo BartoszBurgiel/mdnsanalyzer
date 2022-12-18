@@ -10,7 +10,10 @@ parser = argparse.ArgumentParser(
 
 parser.add_argument('-c', '--count', nargs="?", metavar=100, default=100, type=int, help="Analyze only this many packets. Applies both to the file and the live capturing. 0 means infinite amount of packets")
 parser.add_argument('-f', '--filter', nargs="?", help="BFP filter that will be appended to the default MDNS filter: udp port 5353 and ([filter]).")
-parser.add_argument('-csv', help="Print the results in a CSV format", action='store_true')
+
+output_group = parser.add_mutually_exclusive_group()
+output_group.add_argument('-csv', help="Print the results in a CSV format", action='store_true')
+output_group.add_argument('-t', '--table', help="Print the results in a pretty table", action='store_true')
 
 input_subparsers = parser.add_subparsers(help="Choose between analyzing a file or live capturing ", dest="input")
 
@@ -40,6 +43,8 @@ def analyze():
 
     if args.csv:
         result.csv()
+    elif args.table:
+        result.table()
     else:
         print("just printing resoults...")
         print(result)
