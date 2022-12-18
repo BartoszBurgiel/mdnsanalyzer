@@ -3,6 +3,9 @@ from sys import argv, exit
 from scapy.interfaces import get_if_list
 from scapy.sendrecv import sniff
 import analyzer.result
+import os
+import time
+from threading import Thread
 
 parser = argparse.ArgumentParser(
         prog="mdns-analyzer",
@@ -48,9 +51,11 @@ def analyze():
         default_filter += " and {}".format(args.filter)
     
     if args.input == "live":
+        Thread(target=printer, args=[res]).start()
         sniff(count=args.count, filter=default_filter, iface=args.interface[0], prn=res.update)
     else:
         for f in args.read_file:
+            print("Analyzing ", f, "...")
             sniff(offline=f, filter=default_filter, count=args.count, prn=res.update, quiet=True)
 
     if args.csv:
@@ -59,3 +64,12 @@ def analyze():
         res.table()
     else:
         print(res)
+
+    res.print_report()
+
+
+def printer(res): 
+    while True:
+        os.system('clear')
+        res.table()
+        time.sleep(5)

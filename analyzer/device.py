@@ -5,7 +5,6 @@ from tabulate import tabulate
 
 class Device:
     def __init__(self, p):
-        self.probable_hostname = "unknown"
         self.probable_producer = "unknown"
         self.probable_model = "unknown"
 
@@ -17,10 +16,11 @@ class Device:
         self.device_info = dict()
 
         d = p[DNS]
+        self.probable_hostname = self.determine_probable_hostname(d)
         if DNSQR not in d:
             return
         qr = d[DNSQR]
-        if qr.qtype != 255:
+        if qr.qtype not in [255]:
             return
         
         service_name = qr.qname.decode('utf8')
@@ -124,6 +124,7 @@ class Device:
             return "Android"
 
         return "unknown"
+
 
     def __str__(self):
         ser_head = ["service", "count"]
