@@ -27,12 +27,17 @@ class Device:
         if "ip6.arpa" in service_name or "local" not in service_name:
             return
         self.mac_address = p[Ether].src
-        self.ip_address = p[IP].src
+        if IP in p:
+            self.ip_address = p[IP].src
         self.probable_producer = self.determine_probable_producer(service_name)
 
 
     def update(self, p):
         self.packets = self.packets + 1
+        if self.ip_address != "":
+            if IP in p:
+                self.ip_address = p[IP].src
+
 
         d = p[DNS]
         if self.probable_hostname == "unknown":
