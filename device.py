@@ -9,14 +9,12 @@ class Device:
         self.probable_model = "unknown"
 
         self.mac_address = ""
+        self.ip_address = ""
+
         self.packets = 1
         self.services = dict()
         self.device_info = dict()
 
-        if Ether not in p:
-            return
-        if DNS not in p[Ether]:
-            return
         d = p[DNS]
         if DNSQR not in d:
             return
@@ -28,18 +26,12 @@ class Device:
         if "ip6.arpa" in service_name or "local" not in service_name:
             return
         self.mac_address = p[Ether].src
+        self.ip_address = p[IP].src
         self.probable_producer = self.determine_probable_producer(service_name)
 
 
     def update(self, p):
-        if Ether not in p:
-            return
-        if self.mac_address != p[Ether].src:
-            return
         self.packets = self.packets + 1
-
-        if DNS not in p[Ether]:
-            return
 
         d = p[DNS]
         if self.probable_hostname == "unknown":
@@ -131,7 +123,7 @@ class Device:
         for s in self.services.items():
             ser += str(s)
 
-        return "Probable hostname: {}\nProbable producer: {}\nMAC Address: {}\nPacket count: {}\nServices: {}\n".format(self.probable_hostname, self.probable_producer, self.mac_address, str(self.packets), ser)
+        return "Probable hostname: {}\nProbable producer: {}\nIP Address: {}\nMAC Address: {}\nPacket count: {}\nServices: {}\n".format(self.probable_hostname, self.probable_producer, self.ip_address, self.mac_address, str(self.packets), ser)
 
     def __repr__(self):
         return self.__str__()

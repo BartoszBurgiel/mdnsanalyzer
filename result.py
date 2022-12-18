@@ -20,10 +20,10 @@ class Result:
 
 
     def csv(self):
-        print("name,producer,model,mac_address,packet_count,n_services")
+        print("name,producer,model,ip_address,mac_address,packet_count,n_services")
 
         for s in self.devices.values():
-            print("{},{},{},{},{},{}".format(s.probable_hostname, s.probable_producer, s.probable_model, s.mac_address,s.packets,len(s.services)))
+            print("{},{},{},{},{},{}".format(s.probable_hostname, s.probable_producer, s.probable_model,s.ip_address, s.mac_address,s.packets,len(s.services)))
 
     def __str__(self):
         out = ""
@@ -35,9 +35,9 @@ class Result:
 
 
     def table(self):
-        headers = ["name","producer","model","mac_address","packet_count","n_services"]
+        headers = ["name","producer","model", "ip_address","mac_address","packet_count","n_services"]
         data = []
         for s in self.devices.values():
-            data.append([s.probable_hostname, s.probable_producer, s.probable_model, s.mac_address,s.packets,len(s.services)])
+            data.append([s.probable_hostname, s.probable_producer, s.probable_model, s.ip_address, s.mac_address,s.packets,len(s.services)])
 
         print(tabulate(data, headers=headers))
