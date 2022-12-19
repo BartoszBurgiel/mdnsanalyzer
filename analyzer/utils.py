@@ -208,8 +208,7 @@ def get_apple_model(model):
         return "unknown_"
     id = id.group(0)
     if id not in apple_device_list:
-        cache[model] = "unknown_"
-        return cache[model]
+        return id
     cache[model] = apple_device_list[id]
     return cache[model]
 
