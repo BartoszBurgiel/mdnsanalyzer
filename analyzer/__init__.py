@@ -75,10 +75,17 @@ def analyze():
 
 
 def printer(res, args): 
+    examples = res.packets
     while True:
+        if res.packets != examples:
+            examples = res.packets
+            continue
+
         os.system('clear')
         res.table()
-        time.sleep(3)
+        print("")
+        res.print_report()
+        time.sleep(5)
         if res.packets >= args.count and args.count != 0:
             return
 
