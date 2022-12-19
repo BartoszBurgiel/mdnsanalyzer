@@ -189,7 +189,68 @@ apple_device_list = {
     "Watch6,18":"Apple Watch Ultra",
 }
 
+apple_device_id_cache = {
+    "D101AP":"iPhone9,3",
+    "D10AP":"iPhone9,1",
+    "D111AP":"iPhone9,4",
+    "D11AP":"iPhone9,2",
+    "D16AP":"iPhone14,4",
+    "D17AP":"iPhone14,5",
+    "D201AP":"iPhone10,4",
+    "D20AP":"iPhone10,1",
+    "D211AP":"iPhone10,5",
+    "D221AP":"iPhone10,6",
+    "D22AP":"iPhone10,3",
+    "D27AP":"iPhone14,7",
+    "D321AP":"iPhone11,2",
+    "D331pAP":"iPhone11,6",
+    "D421AP":"iPhone12,3",
+    "D431AP":"iPhone12,5",
+    "D49AP":"iPhone14,6",
+    "D52gAP":"iPhone13,1",
+    "D53gAP":"iPhone13,2",
+    "D53pAP":"iPhone13,3",
+    "D54pAP":"iPhone13,4",
+    "D63AP":"iPhone14,2",
+    "D64AP":"iPhone14,3",
+    "D73AP":"iPhone15,2",
+    "D79AP":"iPhone12,8",
+    "J120AP":"iPad7,1",
+    "J127AP":"iPad6,3",
+    "J128AP":"iPad6,4",
+    "J171aAP":"iPad11,6",
+    "J171AP":"iPad7,11",
+    "J172AP":"iPad7,12",
+    "J181AP":"iPad12,1",
+    "J207AP":"iPad7,3",
+    "J217AP":"iPad11,3",
+    "J307AP":"iPad13,1",
+    "J308AP":"iPad13,2",
+    "J310AP":"iPad14,1",
+    "J311AP":"iPad14,2",
+    "J317AP":"iPad8,1",
+    "J318AP":"iPad8,3",
+    "J320AP":"iPad8,5",
+    "J320xAP":"iPad8,6",
+    "J407AP":"iPad13,16",
+    "J417AP":"iPad8,9",
+    "J420AP":"iPad8,11",
+    "J517AP":"iPad13,4",
+    "J522AP":"iPad13,8",
+    "J617AP":"iPad14,3",
+    "J71bAP":"iPad7,5",
+    "J72bAP":"iPad7,6",
+    "J72tAP":"iPad6,12",
+    "J86mAP":"iPad4,8",
+    "N104AP":"iPhone12,1",
+    "N69uAP":"iPhone8,4",
+    "N71AP":"iPhone8,1",
+    "N71mAP":"iPhone8,1",
+    "N841AP":"iPhone11,8",
+}
+
 cache = dict()
+
 
 def determine_model(m):
     if "MacBook" in m:
@@ -201,6 +262,13 @@ def determine_model(m):
 def get_apple_model(model):
     if model in cache:
         return cache[model]
+    if model in apple_device_id_cache:
+        id = apple_device_id_cache[model]
+        if id not in apple_device_list:
+            return id
+        return apple_device_list[id]
+
+
     url = 'https://www.theiphonewiki.com/wiki/' + model
     body = get(url)
     id = re.search("[i|I][a-zA-Z]+\d+,\d+(-[A|B])?", body.text)
