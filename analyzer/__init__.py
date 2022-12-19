@@ -13,7 +13,7 @@ parser = argparse.ArgumentParser(
         description = "Get an overview of the information about devices in the network from the MDNS traffic.",
         epilog="With great power comes great responsibility")
 
-parser.add_argument('-c', '--count', nargs="?", metavar=100, default=100, type=int, help="Analyze only this many packets. Applies both to the file and the live capturing. 0 means infinite amount of packets")
+parser.add_argument('-c', '--count', nargs="?", metavar=100, default=0, type=int, help="Analyze only this many packets. Applies both to the file and the live capturing. 0 means infinite amount of packets")
 parser.add_argument('-f', '--filter', nargs="?", help="BFP filter that will be appended to the default MDNS filter: udp port 5353 and ([filter]).")
 parser.add_argument('-m', '--mac', nargs="?", type=str, help="Analyse packets which originate from this mac address.")
 

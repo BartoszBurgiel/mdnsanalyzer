@@ -142,7 +142,7 @@ class Device:
             info_rows.append([s, v])
 
             
-        return "\nProbable hostname: \t{}\nProbable producer: \t{}\nIP Address: \t\t{}\nMAC Address: \t\t{}\nPacket count: \t\t{}\nServices: \n{}\n\nDevice info: \n{}\n".format(self.probable_hostname, self.probable_producer, self.ip_address, self.mac_address, str(self.packets), tabulate(ser_rows, headers=ser_head), tabulate(info_rows, headers=info_head))
+        return "\nHostname: \t{}\nProducer: \t{}\nIP Address: \t\t{}\nMAC Address: \t\t{}\nPacket count: \t\t{}\nServices: \n{}\n\nDevice info: \n{}\n".format(self.probable_hostname, self.probable_producer, self.ip_address, self.mac_address, str(self.packets), tabulate(ser_rows, headers=ser_head), tabulate(info_rows, headers=info_head))
 
     def __repr__(self):
         return self.__str__()
