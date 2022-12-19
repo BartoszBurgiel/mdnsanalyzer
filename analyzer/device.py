@@ -78,7 +78,7 @@ class Device:
                 
                 if self.probable_producer == "unknown":
                     low = name.lower()
-                    if any(map(low.__contains__, ['airplay', 'sleep-proxy', 'companion-link', 'macbook', 'ipod'])):
+                    if any(map(low.__contains__, ['airplay', 'sleep-proxy', 'companion-link', 'macbook', 'ipod', 'rdlink'])):
                         self.probable_producer= "Apple"
 
                 if name not in self.services:
