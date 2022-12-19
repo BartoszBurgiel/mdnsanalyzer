@@ -1,6 +1,7 @@
 from scapy.all import *
 import json
 import re
+from analyzer.utils import determine_model
 from tabulate import tabulate
 
 class Device:
@@ -66,10 +67,11 @@ class Device:
                         continue
 
                     kv = si.split('=')
+
                     self.device_info[kv[0]] = re.sub(",",".", kv[1])
                     if kv[0] == "model":
-                        self.probable_model = re.sub(",",".", kv[1])
-
+                        if self.probable_model == "unknown":
+                            self.probable_model = determine_model(re.sub(",", ".", kv[1]))
 
     def get_services(self, p):
         d = p[DNS]
@@ -128,7 +130,6 @@ class Device:
             return "Android"
 
         return "unknown"
-
 
     def __str__(self):
         ser_head = ["service", "count"]
