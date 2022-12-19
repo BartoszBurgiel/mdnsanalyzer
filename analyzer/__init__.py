@@ -2,6 +2,7 @@ import argparse
 from sys import argv, exit
 from scapy.interfaces import get_if_list
 from scapy.sendrecv import sniff
+from scapy.utils import wrpcap
 import analyzer.result
 import os
 import time
@@ -24,6 +25,7 @@ input_subparsers = parser.add_subparsers(help="Choose between analyzing a file o
 
 live_config = input_subparsers.add_parser("live", help="Set the interface on which the analyzer should listen to the packages (requires sudo permissons)")
 live_config.add_argument('-i', '--interface',nargs=1, choices=get_if_list(), metavar=get_if_list(), help="select an interface to listen to", required=True, type=str)
+live_config.add_argument('-s', '--save-to-file', help="Save the packets to a file when using the live listening mode.", type=str)
 
 file_config = input_subparsers.add_parser("file", help="provide file(s) to analyze")
 file_config.add_argument('-r', '--read-file', nargs="+", metavar="capture.pcap", help="mdns-analyzer will read the provided file(s)", required=True)
@@ -52,7 +54,11 @@ def analyze():
     
     if args.input == "live":
         Thread(target=printer, args=[res, args]).start()
-        sniff(count=args.count, filter=default_filter, iface=args.interface[0], prn=res.update)
+        if args.save_to_file != None:
+            recorder = Recorder(args.save_to_file, res)
+            sniff(count=args.count, filter=default_filter, iface=args.interface[0], prn=recorder.analyze_and_record)
+        else:
+            sniff(count=args.count, filter=default_filter, iface=args.interface[0], prn=res.update)
     else:
         for f in args.read_file:
             print("Analyzing ", f, "...")
@@ -75,3 +81,14 @@ def printer(res, args):
         time.sleep(3)
         if res.packets >= args.count and args.count != 0:
             return
+
+
+class Recorder:
+    def __init__(self, f, res):
+        self.f = f
+        self.res = res
+
+    def analyze_and_record(self, p):
+       self.res.update(p)
+       wrpcap(self.f, p, append=True)
+
