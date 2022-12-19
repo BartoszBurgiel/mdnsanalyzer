@@ -57,14 +57,11 @@ class Device:
         for i in range(count):
             ans = p[DNS].an[i]
             if "device-info" in ans.rrname.decode('utf8'):
-                info = ans.rdata
-                for inf in info:
-                    if type(inf) == int:
-                        continue
-                    si = inf.decode('utf8')
-                    if "=" not in si:
-                        continue
 
+                info = d.rdata
+                print(info)
+                for i in info:
+                    si = i
                     kv = si.split('=')
                     self.device_info[kv[0]] = re.sub(",",".", kv[1])
                     if kv[0] == "model":
@@ -133,16 +130,10 @@ class Device:
     def __str__(self):
         ser_head = ["service", "count"]
         ser_rows = []
-        for s,c in self.services.items():
-            ser_rows.append([s,c])
-    
-        info_head = ["spec", "value"]
-        info_rows = []
-        for s, v in self.device_info.items():
-            info_rows.append([s, v])
+        for s in self.services.items():
+            ser_rows.append(list(s))
 
-            
-        return "\nProbable hostname: \t{}\nProbable producer: \t{}\nIP Address: \t\t{}\nMAC Address: \t\t{}\nPacket count: \t\t{}\nServices: \n{}\n\nDevice info: \n{}\n".format(self.probable_hostname, self.probable_producer, self.ip_address, self.mac_address, str(self.packets), tabulate(ser_rows, headers=ser_head), tabulate(info_rows, headers=info_head))
+        return "\nProbable hostname: \t{}\nProbable producer: \t{}\nIP Address: \t\t{}\nMAC Address: \t\t{}\nPacket count: \t\t{}\nServices: \n{}\n".format(self.probable_hostname, self.probable_producer, self.ip_address, self.mac_address, str(self.packets), tabulate(ser_rows, headers=ser_head))
 
     def __repr__(self):
         return self.__str__()
