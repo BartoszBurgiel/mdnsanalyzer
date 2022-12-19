@@ -203,10 +203,13 @@ def get_apple_model(model):
         return cache[model]
     url = 'https://www.theiphonewiki.com/wiki/' + model
     body = get(url)
-    id = re.search("[i|I][a-zA-Z]+\d+,\d+", body.text)
+    id = re.search("[i|I][a-zA-Z]+\d+,\d+(-[A|B])?", body.text)
     if id is None:
         return "unknown_"
     id = id.group(0)
+    if id not in apple_device_list:
+        cache[model] = "unknown_"
+        return cache[model]
     cache[model] = apple_device_list[id]
     return cache[model]
 
