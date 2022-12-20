@@ -79,6 +79,7 @@ apple_device_list = {
     "J522xAP":"iPad Pro (12.9-inch) (5th generation)",
     "J523AP":"iPad Pro (12.9-inch) (5th generation)",
     "J523xAP":"iPad Pro (12.9-inch) (5th generation)",
+    "J617AP":"iPad Pro 11",
     "J71AP":"iPad Air",
     "J71bAP":"iPad (6th generation)",
     "J71sAP71tAP":"iPad (5th generation)" ,
