@@ -3,7 +3,7 @@ from sys import argv, exit
 from scapy.interfaces import get_if_list
 from scapy.sendrecv import sniff
 from scapy.utils import wrpcap
-import analyzer.result
+import analyser.result
 import os
 import time
 from threading import Thread
@@ -32,7 +32,7 @@ file_config.add_argument('-r', '--read-file', nargs="+", metavar="capture.pcap",
 
 
 
-def analyze():
+def analyse():
     if len(argv) < 2:
         parser.print_help()
         exit(1)

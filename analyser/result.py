@@ -1,4 +1,4 @@
-from analyzer.device import Device
+from analyser.device import Device
 from os import system
 from scapy.layers.l2 import Ether
 from tabulate import tabulate

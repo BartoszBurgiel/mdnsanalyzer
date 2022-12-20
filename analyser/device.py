@@ -1,7 +1,7 @@
 from scapy.all import *
 import json
 import re
-from analyzer.utils import determine_model
+from analyser.utils import determine_model
 from tabulate import tabulate
 
 class Device:
