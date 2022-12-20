@@ -1,8 +1,10 @@
 from scapy.all import *
 import json
+from requests import get
 import re
 from analyser.utils import determine_model
 from tabulate import tabulate
+from time import sleep
 
 class Device:
     def __init__(self, p):
@@ -10,6 +12,7 @@ class Device:
         self.probable_model = "unknown"
 
         self.mac_address = ""
+        self.is_mac_random = True
         self.ip_address = ""
 
         self.packets = 1
@@ -28,6 +31,8 @@ class Device:
         if "ip6.arpa" in service_name or "local" not in service_name:
             return
         self.mac_address = p[Ether].src
+        threading.Thread(target=self.determine_company_name_from_mac, args=[self.mac_address]).start()
+
         if IP in p:
             self.ip_address = p[IP].src
         self.probable_producer = self.determine_probable_producer(service_name)
@@ -130,6 +135,30 @@ class Device:
             return "Android"
 
         return "unknown"
+
+
+    def determine_company_name_from_mac(self, mac):
+        url = 'https://api.maclookup.app/v2/macs/' + mac
+        try:
+            res = get(url).text
+        except:
+            return
+        j = json.loads(res)
+        
+        if not j['success']:
+            if j['errorCode']== 429:
+                sleep(0.5)
+                return self.determine_company_name_from_mac(mac)
+            return 
+
+        if j['success']:
+            if j['found']:
+                self.probable_producer =  j['company']
+                self.is_mac_random = j['isRand']
+        
+            return 
+
+
 
     def __str__(self):
         ser_head = ["service", "count"]

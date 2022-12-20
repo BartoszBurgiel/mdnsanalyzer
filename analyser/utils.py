@@ -1,5 +1,7 @@
 from requests import get
+import json
 import re
+from time import sleep
 
 apple_device_list = {
     "D101AP":"iPhone 7",
@@ -158,7 +160,11 @@ def get_apple_model(model):
         return cache[model]
 
     url = 'https://www.theiphonewiki.com/wiki/' + model
-    body = get(url)
+    try:
+        body = get(url)
+    except:
+        return "unknown_"
+
     id = re.search("[i|I][a-zA-Z]+\d+,\d+(-[A|B])?", body.text)
     if id is None:
         return "unknown_"
@@ -167,4 +173,3 @@ def get_apple_model(model):
         return id
     cache[model] = apple_device_list[id]
     return cache[model]
-
