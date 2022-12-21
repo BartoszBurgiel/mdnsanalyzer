@@ -24,22 +24,10 @@ class Device:
         self.mac_address = p[Ether].src
         self.hostname = self.determine_hostname(d)
 
+        threading.Thread(target=self.determine_producer, args=[self.mac_address, self.hostname]).start()
+        self.get_device_info(p)
         if IP in p:
             self.ip_address = p[IP].src
-
-        if DNSQR not in d:
-            return
-
-        qr = d[DNSQR]
-        if qr.qtype not in [255]:
-            return
-        
-        service_name = qr.qname.decode('utf8')
-        if "arpa" in service_name or "local" not in service_name:
-            self.hostname = "unknown" 
-
-        threading.Thread(target=self.determine_producer, args=[self.mac_address, service_name]).start()
-
 
 
     def update(self, p):
@@ -60,6 +48,10 @@ class Device:
         self.get_services(p)
         
     def get_device_info(self, p):
+        if DNS not in p:
+            return
+        if DNSRR not in p[DNS]:
+            return
         d = p[DNS][DNSRR]
         count = p[DNS].ancount
         for i in range(count):
