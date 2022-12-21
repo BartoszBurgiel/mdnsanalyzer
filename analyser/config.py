@@ -1,5 +1,6 @@
 from sys import argv, exit
 import argparse
+from scapy.all import *
 
 parser = argparse.ArgumentParser(
         prog="mdns-analyzer",
@@ -18,7 +19,7 @@ output_group.add_argument('-t', '--table', help="Print the results in a pretty t
 input_subparsers = parser.add_subparsers(help="Choose between analyzing a file or live capturing ", dest="input")
 
 live_config = input_subparsers.add_parser("live", help="Set the interface on which the analyzer should listen to the packages (requires sudo permissons)")
-live_config.add_argument('-i', '--interface',nargs=1, help="select an interface to listen to", required=True, type=str)
+live_config.add_argument('-i', '--interface', nargs=1, choices=get_if_list(), metavar=get_if_list(), help="select an interface to listen to", required=True, type=str)
 live_config.add_argument('-s', '--save-to-file', help="Save the packets to a file when using the live listening mode.", type=str)
 
 file_config = input_subparsers.add_parser("file", help="provide file(s) to analyze")

@@ -1,6 +1,7 @@
 from analyser.config import args
 from scapy.all import *
 from analyser.result import Result
+from analyser.utils import Recorder
 from analyser.utils import printer
 
 def analysePackets():
