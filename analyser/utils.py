@@ -1,6 +1,7 @@
 from requests import get
 import json
 import re
+from scapy.all import *
 from time import sleep
 import os
 
@@ -186,6 +187,7 @@ def printer(res, args):
         res.table()
         print("")
         res.print_report()
+
         sleep(5)
         if res.packets >= args.count and args.count != 0:
             return
