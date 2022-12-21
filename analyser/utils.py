@@ -2,6 +2,7 @@ from requests import get
 import json
 import re
 from time import sleep
+import os
 
 apple_device_list = {
     "D101AP":"iPhone 7",
@@ -185,7 +186,7 @@ def printer(res, args):
         res.table()
         print("")
         res.print_report()
-        time.sleep(5)
+        sleep(5)
         if res.packets >= args.count and args.count != 0:
             return
 
