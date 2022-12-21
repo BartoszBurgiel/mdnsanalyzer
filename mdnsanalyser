@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-from analyser import analyse
+from analyser.analyse import analysePackets
 
 
 if __name__ == "__main__":
-    analyse()
+    analysePackets()

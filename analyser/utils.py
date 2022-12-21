@@ -173,3 +173,29 @@ def get_apple_model(model):
         return id
     cache[model] = apple_device_list[id]
     return cache[model]
+
+def printer(res, args): 
+    examples = res.packets
+    while True:
+        if res.packets != examples:
+            examples = res.packets
+            continue
+
+        os.system('clear')
+        res.table()
+        print("")
+        res.print_report()
+        time.sleep(5)
+        if res.packets >= args.count and args.count != 0:
+            return
+
+
+class Recorder:
+    def __init__(self, f, res):
+        self.f = f
+        self.res = res
+
+    def analyze_and_record(self, p):
+       self.res.update(p)
+       wrpcap(self.f, p, append=True)
+

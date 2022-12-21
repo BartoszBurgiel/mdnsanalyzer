@@ -5,11 +5,12 @@ import re
 from analyser.utils import determine_model
 from tabulate import tabulate
 from time import sleep
+from analyser.config import args
 
 class Device:
     def __init__(self, p):
-        self.probable_producer = "unknown"
-        self.probable_model = "unknown"
+        self.producer = "unknown"
+        self.model = "unknown"
 
         self.mac_address = ""
         self.is_mac_random = True
@@ -20,22 +21,25 @@ class Device:
         self.device_info = dict()
 
         d = p[DNS]
-        self.probable_hostname = self.determine_probable_hostname(d)
+        self.mac_address = p[Ether].src
+        self.hostname = self.determine_hostname(d)
+
+        if IP in p:
+            self.ip_address = p[IP].src
+
         if DNSQR not in d:
             return
+
         qr = d[DNSQR]
         if qr.qtype not in [255]:
             return
         
         service_name = qr.qname.decode('utf8')
-        if "ip6.arpa" in service_name or "local" not in service_name:
-            return
-        self.mac_address = p[Ether].src
-        threading.Thread(target=self.determine_company_name_from_mac, args=[self.mac_address]).start()
+        if "arpa" in service_name or "local" not in service_name:
+            self.hostname = "unknown" 
 
-        if IP in p:
-            self.ip_address = p[IP].src
-        self.probable_producer = self.determine_probable_producer(service_name)
+        threading.Thread(target=self.determine_producer, args=[self.mac_address, service_name]).start()
+
 
 
     def update(self, p):
@@ -47,16 +51,14 @@ class Device:
         if DNS not in p:
             return
         d = p[DNS]
-        if self.probable_hostname == "unknown":
-            self.probable_hostname = self.determine_probable_hostname(d)
+        if self.hostname == "unknown":
+            self.hostname = self.determine_hostname(d)
 
         if DNSRR in d:
             self.get_device_info(p)
 
         self.get_services(p)
         
-
-
     def get_device_info(self, p):
         d = p[DNS][DNSRR]
         count = p[DNS].ancount
@@ -75,8 +77,8 @@ class Device:
 
                     self.device_info[kv[0]] = re.sub(",",".", kv[1])
                     if kv[0] == "model":
-                        if self.probable_model == "unknown":
-                            self.probable_model = determine_model(re.sub(",", ".", kv[1]))
+                        if self.model == "unknown":
+                            self.model = determine_model(re.sub(",", ".", kv[1]))
 
     def get_services(self, p):
         d = p[DNS]
@@ -87,10 +89,10 @@ class Device:
                     continue
                 name = d.qd[i].qname.decode('utf8')
                 
-                if self.probable_producer == "unknown":
+                if self.producer == "unknown":
                     low = name.lower()
                     if any(map(low.__contains__, ['airplay', 'sleep-proxy', 'companion-link', 'macbook', 'ipod', 'rdlink'])):
-                        self.probable_producer= "Apple"
+                        self.producer= "Apple"
 
                 if name not in self.services:
                     self.services[name] = 1
@@ -98,46 +100,73 @@ class Device:
                     self.services[name] = self.services[name]+1
 
     
-    def determine_probable_hostname(self, d):
-        name = ""
-        if d.ancount != 0:
-            if DNSRR in d:
-                name = str(d[DNSRR].rrname, encoding='utf8')
-            else:
-                return "unknown"
+    def determine_hostname(self, d):
+        pattern = "(\._[a-zA-Z\-]+\._(tcp|udp))?\.local\."
+        name = "unknown"
+        
+        if DNSRR in d:
+            count = d.ancount
+            for q in range(count):
+                rr = d.an[q]
+                name = rr.rrname.decode('utf8')
+                if rr.type == 16 and "device-info" in name:
+                    name = re.sub(pattern, "", name)
+                    return name
 
+                if rr.type == 12:
+                    name = rr.rdata.decode('utf8')
+                    if "arpa" in name:
+                        name = re.sub(pattern, "", name)
+                        return name
+
+                    if "._mi-connect" in name:
+                        name = re.sub(pattern, "", name)
+                        prop = json.loads(name)
+                        return prop['nm']
+
+                if rr.type == 1:
+                    name = rr.rrname.decode('utf8')
+                    name = re.sub(pattern, "", name)
+                    return name
+
+        name = "unknown"
         if DNSQR in d:
+            count = d.qdcount 
+            for q in range(count):
+                q = d.qd[q]
+            if d[DNSQR].qtype != 16:
+                return "unknown"
             name = str(d[DNSQR].qname, encoding='utf8')
 
-        if name[0] == "_" or ".ip6.arpa." in name:
+        if name[0] == "_" or ".arpa." in name:
             return "unknown"
+        return "unknown"
 
-        pattern = "(\._[a-zA-Z\-]+\._(tcp|udp))?\.local\."
-        head = re.sub(pattern, "", name)
+    def determine_producer(self, mac, name):
+        self.determine_producer_from_name(name)
+        if self.producer != "unknown":
+            return
+        self.determine_producer_from_mac(mac)
+
+    def determine_producer_from_name(self, name):
         if '._mi-connect' in name:
-            prop = json.loads(head)
-            return prop['nm']
-
-        if '._tcp' in head:
-            return "unknown"
-
-        return head
-
-    def determine_probable_producer(self, name):
-        if '._mi-connect' in name:
-            return "Xiaomi"
+            self.producer = "Xiaomi"
+            return
 
         low = name.lower()
         if any(map(low.__contains__, ['iphone', 'i pad', 'ipad', 'macbook', 'ipod'])):
-            return "Apple"
+            self.producer =  "Apple"
+            return
 
         if 'android' in low:
-            return "Android"
+            self.producer =  "Android"
+            return
 
-        return "unknown"
 
+    def determine_producer_from_mac(self, mac):
+        if not args.offline:
+            return
 
-    def determine_company_name_from_mac(self, mac):
         url = 'https://api.maclookup.app/v2/macs/' + mac
         try:
             res = get(url).text
@@ -148,12 +177,12 @@ class Device:
         if not j['success']:
             if j['errorCode']== 429:
                 sleep(0.5)
-                return self.determine_company_name_from_mac(mac)
+                return self.determine_producer_from_mac(mac)
             return 
 
         if j['success']:
             if j['found']:
-                self.probable_producer =  j['company']
+                self.producer =  j['company']
                 self.is_mac_random = j['isRand']
         
             return 
@@ -171,8 +200,7 @@ class Device:
         for s, v in self.device_info.items():
             info_rows.append([s, v])
 
-            
-        return "\nHostname: \t{}\nProducer: \t{}\nIP Address: \t\t{}\nMAC Address: \t\t{}\nPacket count: \t\t{}\nServices: \n{}\n\nDevice info: \n{}\n".format(self.probable_hostname, self.probable_producer, self.ip_address, self.mac_address, str(self.packets), tabulate(ser_rows, headers=ser_head), tabulate(info_rows, headers=info_head))
+        return "\nHostname: \t\t{}\nProducer: \t\t{}\nModel: \t\t\t{}\nIP Address: \t\t{}\nMAC Address: \t\t{}\nIs MAC random?: \t{}\nPacket count: \t\t{}\nServices: \n{}\n\nDevice info: \n{}\n".format(self.hostname, self.producer, self.model, self.ip_address, self.mac_address, self.is_mac_random, str(self.packets), tabulate(ser_rows, headers=ser_head), tabulate(info_rows, headers=info_head))
 
     def __repr__(self):
         return self.__str__()

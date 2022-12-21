@@ -24,15 +24,14 @@ class Result:
 
     def csv(self):
         print("name,producer,model,ip_address,mac_address,packet_count,n_services")
-
         for s in self.devices.values():
-            print("{},{},{},{},{},{}".format(s.probable_hostname, s.probable_producer, s.probable_model,s.ip_address, s.mac_address,s.packets,len(s.services)))
+            print("{},{},{},{},{},{}".format(s.hostname, s.producer, s.model,s.ip_address, s.mac_address,s.packets,len(s.services)))
 
     def table(self):
         headers = ["name","producer","model", "ip_address","mac_address","packet_count","n_services"]
         data = []
         for s in self.devices.values():
-            data.append([s.probable_hostname, s.probable_producer, s.probable_model, s.ip_address, s.mac_address,s.packets,len(s.services)])
+            data.append([s.hostname, s.producer, s.model, s.ip_address, s.mac_address,s.packets,len(s.services)])
 
         print(tabulate(data, headers=headers))
 
@@ -47,3 +46,6 @@ class Result:
             out += "\n"
 
         return out
+
+    def __repr__(self):
+        return self.__str__()
