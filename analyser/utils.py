@@ -200,9 +200,7 @@ cache = dict()
 
 
 def determine_model(m):
-    if "MacBook" in m:
-        return m
-    if m.endswith("AP"):
+    if m.endswith("AP") or "MacBook" in m:
         return get_apple_model(m)
     return "unknown_"
 
