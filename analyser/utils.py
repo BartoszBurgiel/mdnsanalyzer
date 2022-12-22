@@ -5,6 +5,28 @@ from scapy.all import *
 from time import sleep
 import os
 
+osx_code_list = {
+    "22":"OS X 13.0 (Ventura)",
+    "21":"OS X 12.0 (Monterey)",
+    "20":"OS X 11.0 (Big Sur)",
+    "19":"OS X 10.15 (Catalina)",
+    "18":"OS X 10.14 (Mojave)",
+    "17":"OS X 10.13 (High Sierra)",
+    "16":"OS X 10.12 (Sierra)",
+    "15":"OS X 10.11 (El Capitan)",
+    "14":"OS X 10.10 (Yosemite)",
+    "13":"OS X 10.9 (Mavericks)",
+    "12":"OS X 10.8 (Mountain Lion)",
+    "11":"Mac OS X 10.7 (Lion)",
+    "10":"Mac OS X 10.6 (Snow Leopard)",
+    "9":"Mac OS X 10.5 (Leopard)",
+    "8":"Mac OS X 10.4 (Tiger)",
+    "7":"Mac OS X 10.3 (Panther)",
+    "6":"Mac OS X 10.2 (Jaguar)",
+    "5":"Mac OS X 10.1 (Puma)",
+    "4":"Mac OS X 10.0 (Cheetah)",
+}
+
 apple_device_list = {
     "MacBookPro17,1":"MacBook Pro (13-inch, M1, 2020)",
     "MacBookPro16,1":"MacBook Pro (16-inch, 2019)",
@@ -320,6 +342,13 @@ def analyse_device_info_record(device, r):
             model = model.decode('utf8')
             model = re.sub("model=", "", model)
             device.model = determine_model(model)
+
+    if "MacBook" in device.hostname and device.operating_system == "unknown":
+        osx = next(m for m in r.rdata if (lambda x : b'osxvers=' in x)(m))
+        if osx != None:
+            osx = osx.decode('utf8')
+            osx = re.sub("osxvers=", "", osx)
+            device.operating_system = osx_code_list[osx]
 
 def printer(res, args): 
     examples = res.packets

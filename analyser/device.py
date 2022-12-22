@@ -1,6 +1,5 @@
 from scapy.all import *
 import json
-from requests import get
 import re
 from analyser.utils import determine_model
 from analyser.utils import analyse_airplay_record
@@ -17,13 +16,13 @@ class Device:
         self.producer = "unknown"
         self.hostname = "unknown"
         self.model = "unknown"
+        self.operating_system = "unknown"
 
         self.mac_address = ""
         self.ip_address = ""
 
         self.packets = 1
         self.services = dict()
-        self.device_info = dict()
 
         if IP in p:
             self.ip_address = p[IP].src
@@ -102,17 +101,32 @@ class Device:
                     self.producer = "Apple"
 
     def __str__(self):
-        ser_head = ["service", "count"]
-        ser_rows = []
-        for s,c in self.services.items():
-            ser_rows.append([s,c])
-    
-        info_head = ["spec", "value"]
-        info_rows = []
-        for s, v in self.device_info.items():
-            info_rows.append([s, v])
 
-        return "\nHostname: \t\t{}\nProducer: \t\t{}\nModel: \t\t\t{}\nIP Address: \t\t{}\nMAC Address: \t\t{}\nPacket count: \t\t{}\nServices: \n{}\n\nDevice info: \n{}\n".format(self.hostname, self.producer, self.model, self.ip_address, self.mac_address, str(self.packets), tabulate(ser_rows, headers=ser_head), tabulate(info_rows, headers=info_head))
+        s = "Hostname: \t\t{}\n".format(self.hostname)
+
+        if self.producer != "unknown":
+            s += "Producer: \t\t{}\n".format(self.producer)
+
+        if self.model != "unknown":
+            s += "Model: \t\t\t{}\n".format(self.model)
+
+        if self.operating_system != "unknown":
+            s += "OS: \t\t\t{}\n".format(self.operating_system)
+
+
+        s += "IP Address: \t\t{}\nMAC Address: \t\t{}\nPacket count: \t\t{}\n".format(self.ip_address, self.mac_address, str(self.packets))
+
+        if len(self.services) > 0:
+            ser_head = ["service", "count"]
+            ser_rows = []
+            for ser, cnt in self.services.items():
+                ser_rows.append([ser,cnt])
+            
+            s += "Services:\n{}".format(tabulate(ser_rows, headers=ser_head))
+
+
+        return s + "\n"
+
 
     def __repr__(self):
         return self.__str__()
