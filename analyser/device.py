@@ -58,10 +58,16 @@ class Device:
         count = d.qdcount
 
         for i in range(count):
-
             q = d.qd[i]
+
+            if q.qtype == 12:
+                if q.qname.decode('utf8') not in device.services:
+                    device.services[q.qname.decode('utf8')] = 1
+                else:
+                    device.services[q.qname.decode('utf8')] += 1
+
             if q.qtype not in [1,255]:
-                return
+                continue
 
             if device.hostname == "unknown":
                 if b'arpa' in q.qname:
