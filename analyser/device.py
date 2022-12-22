@@ -19,7 +19,6 @@ class Device:
         self.model = "unknown"
 
         self.mac_address = ""
-        self.is_mac_random = True
         self.ip_address = ""
 
         self.packets = 1
@@ -31,8 +30,6 @@ class Device:
 
         d = p[DNS]
         self.mac_address = p[Ether].src
-
-        threading.Thread(target=self.determine_producer_from_mac, args=[self.mac_address]).start()
 
         if DNSRR in d:
             self.analyse_dnsrr(d)
@@ -104,32 +101,6 @@ class Device:
                 if self.producer == "unknown":
                     self.producer = "Apple"
 
-    def determine_producer_from_mac(self, mac):
-        if not args.offline:
-            return
-
-        url = 'https://api.maclookup.app/v2/macs/' + mac
-        try:
-            res = get(url).text
-        except:
-            return
-        j = json.loads(res)
-        
-        if not j['success']:
-            if j['errorCode']== 429:
-                sleep(0.5)
-                return self.determine_producer_from_mac(mac)
-            return 
-
-        if j['success']:
-            if j['found']:
-                self.producer =  j['company']
-                self.is_mac_random = j['isRand']
-        
-            return 
-
-
-
     def __str__(self):
         ser_head = ["service", "count"]
         ser_rows = []
@@ -141,7 +112,7 @@ class Device:
         for s, v in self.device_info.items():
             info_rows.append([s, v])
 
-        return "\nHostname: \t\t{}\nProducer: \t\t{}\nModel: \t\t\t{}\nIP Address: \t\t{}\nMAC Address: \t\t{}\nIs MAC random?: \t{}\nPacket count: \t\t{}\nServices: \n{}\n\nDevice info: \n{}\n".format(self.hostname, self.producer, self.model, self.ip_address, self.mac_address, self.is_mac_random, str(self.packets), tabulate(ser_rows, headers=ser_head), tabulate(info_rows, headers=info_head))
+        return "\nHostname: \t\t{}\nProducer: \t\t{}\nModel: \t\t\t{}\nIP Address: \t\t{}\nMAC Address: \t\t{}\nPacket count: \t\t{}\nServices: \n{}\n\nDevice info: \n{}\n".format(self.hostname, self.producer, self.model, self.ip_address, self.mac_address, str(self.packets), tabulate(ser_rows, headers=ser_head), tabulate(info_rows, headers=info_head))
 
     def __repr__(self):
         return self.__str__()
