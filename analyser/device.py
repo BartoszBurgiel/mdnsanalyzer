@@ -3,6 +3,11 @@ import json
 from requests import get
 import re
 from analyser.utils import determine_model
+from analyser.utils import analyse_airplay_record
+from analyser.utils import analyse_raop_record
+from analyser.utils import analyse_mi_connect_record
+from analyser.utils import analyse_device_info_record
+from analyser.utils import remove_service_from_name
 from tabulate import tabulate
 from time import sleep
 from analyser.config import args
@@ -10,6 +15,7 @@ from analyser.config import args
 class Device:
     def __init__(self, p):
         self.producer = "unknown"
+        self.hostname = "unknown"
         self.model = "unknown"
 
         self.mac_address = ""
@@ -20,140 +26,83 @@ class Device:
         self.services = dict()
         self.device_info = dict()
 
-        d = p[DNS]
-        self.mac_address = p[Ether].src
-        self.hostname = self.determine_hostname(d)
-
-        threading.Thread(target=self.determine_producer, args=[self.mac_address, self.hostname]).start()
-        self.get_device_info(p)
         if IP in p:
             self.ip_address = p[IP].src
+
+        d = p[DNS]
+        self.mac_address = p[Ether].src
+
+        threading.Thread(target=self.determine_producer_from_mac, args=[self.mac_address]).start()
+
+        if DNSRR in d:
+            self.analyse_dnsrr(d)
+        
+        if DNSQR in d:
+            self.analyse_dnsqr(d)
+
 
 
     def update(self, p):
         self.packets = self.packets + 1
-        if self.ip_address != "":
+        if self.ip_address == "":
             if IP in p:
                 self.ip_address = p[IP].src
 
         if DNS not in p:
             return
         d = p[DNS]
-        if self.hostname == "unknown":
-            self.hostname = self.determine_hostname(d)
 
         if DNSRR in d:
-            self.get_device_info(p)
+            self.analyse_dnsrr(d)
 
-        self.get_services(p)
-        
-    def get_device_info(self, p):
-        if DNS not in p:
-            return
-        if DNSRR not in p[DNS]:
-            return
-        d = p[DNS][DNSRR]
-        count = p[DNS].ancount
-        for i in range(count):
-            ans = p[DNS].an[i]
-            if "device-info" in ans.rrname.decode('utf8'):
-                info = ans.rdata
-                for inf in info:
-                    if type(inf) == int:
-                        continue
-                    si = inf.decode('utf8')
-                    if "=" not in si:
-                        continue
-
-                    kv = si.split('=')
-
-                    self.device_info[kv[0]] = re.sub(",",".", kv[1])
-                    if kv[0] == "model":
-                        if self.model == "unknown":
-                            self.model = determine_model(re.sub(",", ".", kv[1]))
-
-    def get_services(self, p):
-        d = p[DNS]
-        cnt = d.qdcount
-        for i in range(cnt):
-            if hasattr(d.qd[i], "qname"):
-                if d.qd[i].qtype != 12:
-                    continue
-                name = d.qd[i].qname.decode('utf8')
-                
-                if self.producer == "unknown":
-                    low = name.lower()
-                    if any(map(low.__contains__, ['airplay', 'sleep-proxy', 'companion-link', 'macbook', 'ipod', 'rdlink'])):
-                        self.producer= "Apple"
-
-                if name not in self.services:
-                    self.services[name] = 1
-                else:
-                    self.services[name] = self.services[name]+1
-
-    
-    def determine_hostname(self, d):
-        pattern = "(\._[a-zA-Z\-]+\._(tcp|udp))?\.local\."
-        name = "unknown"
-        
-        if DNSRR in d:
-            count = d.ancount
-            for q in range(count):
-                rr = d.an[q]
-                name = rr.rrname.decode('utf8')
-                if rr.type == 16 and "device-info" in name:
-                    name = re.sub(pattern, "", name)
-                    return name
-
-                if rr.type == 12:
-                    name = rr.rdata.decode('utf8')
-                    if "arpa" in name:
-                        name = re.sub(pattern, "", name)
-                        return name
-
-                    if "._mi-connect" in name:
-                        name = re.sub(pattern, "", name)
-                        prop = json.loads(name)
-                        return prop['nm']
-
-                if rr.type == 1:
-                    name = rr.rrname.decode('utf8')
-                    name = re.sub(pattern, "", name)
-                    return name
-
-        name = "unknown"
         if DNSQR in d:
-            count = d.qdcount 
-            for q in range(count):
-                q = d.qd[q]
-            if d[DNSQR].qtype != 16:
-                return "unknown"
-            name = str(d[DNSQR].qname, encoding='utf8')
+            self.analyse_dnsqr(d)
 
-        if name[0] == "_" or ".arpa." in name:
-            return "unknown"
-        return "unknown"
+    def analyse_dnsqr(device, d):
+        count = d.qdcount
 
-    def determine_producer(self, mac, name):
-        self.determine_producer_from_name(name)
-        if self.producer != "unknown":
-            return
-        self.determine_producer_from_mac(mac)
+        for i in range(count):
 
-    def determine_producer_from_name(self, name):
-        if '._mi-connect' in name:
-            self.producer = "Xiaomi"
-            return
+            q = d.qd[i]
+            if q.qtype not in [1,255]:
+                return
 
-        low = name.lower()
-        if any(map(low.__contains__, ['iphone', 'i pad', 'ipad', 'macbook', 'ipod'])):
-            self.producer =  "Apple"
-            return
+            if device.hostname == "unknown":
+                if b'arpa' in q.qname:
+                    return 
 
-        if 'android' in low:
-            self.producer =  "Android"
-            return
+                if b'mobdev2' in q.qname: 
+                    return 
 
+                if b'mi-connect' in q.qname:
+                    return
+                device.hostname = remove_service_from_name(q.qname.decode('utf8'))
+
+        
+    def analyse_dnsrr(self, d):
+        count = d.ancount
+
+        for i in range(count):
+            res = d.an[i]
+
+            if b'airplay' in res.rrname:
+                analyse_airplay_record(self, res)
+                continue 
+
+            if b'raop' in res.rrname:
+                analyse_raop_record(self, res)
+                continue
+
+            if b'._mi-connect' in res.rrname:
+                analyse_mi_connect_record(self, res)
+                continue
+
+            if b'device-info' in res.rrname:
+                analyse_device_info_record(self, res)
+
+            if b'companion-link' in res.rrname:
+                if self.producer == "unknown":
+                    self.producer = "Apple"
 
     def determine_producer_from_mac(self, mac):
         if not args.offline:

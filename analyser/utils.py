@@ -176,6 +176,101 @@ def get_apple_model(model):
     cache[model] = apple_device_list[id]
     return cache[model]
 
+
+def analyse_airplay_record(device, r):
+    if device.producer == "unknown":
+        device.producer = "Apple"
+
+    if '_.airplay._tcp.local' in device.services:
+        device.services['_.airplay._tcp.local'] = device.services['_.airplay._tcp.local'] 
+    else: 
+        device.services['_.airplay._tcp.local'] = 1 
+
+    if device.producer == "unknown":
+        device.producer = "Apple"
+    if r.type != 16:
+        return
+
+    if device.hostname == "unknown":
+        device.hostname = remove_service_from_name(r.rrname.decode('utf8'))
+     
+    if device.model == "unknown":
+        model = next(m for m in r.rdata if (lambda x : b'model=' in x)(m))
+        if model != None:
+            model = model.decode('utf8')
+            model = re.sub("model=", "", model)
+            device.model = determine_model(model)
+        
+
+def analyse_raop_record(device, r):
+    if device.producer == "unknown":
+        device.producer = "Apple"
+
+    if '_.raop._tcp.local' in device.services:
+        device.services['_.raop._tcp.local'] = device.services['_.raop._tcp.local'] 
+    else: 
+        device.services['_.raop._tcp.local'] = 1 
+
+    if r.type != 16:
+        return
+
+    if device.producer == "unknown":
+        device.producer = "Apple"
+
+    if device.hostname == "unknown":
+        name = r.rrname.decode('utf8')
+        if "@" in name:
+            name = name.split("@")[1]
+        device.hostname = remove_service_from_name(name)
+
+    if device.model == "unknown":
+        model = next(m for m in r.rdata if (lambda x : b'am=' in x)(m))
+        if model != None:
+            model = model.decode('utf8')
+            model = re.sub("model=", "", model)
+            device.model = determine_model(model)
+
+def analyse_mi_connect_record(device, r):
+    if r.type != 16:
+        return
+    
+    if '_.mi-connect._udp.local' in device.services:
+        device.services['_.mi-connect._udp.local'] = device.services['_.mi-connect._udp.local'] 
+    else: 
+        device.services['_.mi-connect._udp.local'] = 1 
+
+    if device.producer == "unknown":
+        device.producer = "Xiaomi"
+
+    if device.hostname == "unknown":
+        name = next(n for n in r.rdata if (lambda x : b'name=' in x)(n))
+        if name != None:
+            name = name.decode('utf8')
+            name = re.sub("name=", "", name)
+            device.hostname = name
+
+def analyse_device_info_record(device, r):
+    if r.type != 16:
+        return 
+
+    if '_.device-info._tcp.local' in device.services:
+        device.services['_.device-info._tcp.local'] = device.services['_.device-info._tcp.local'] 
+    else: 
+        device.services['_.device-info._tcp.local'] = 1 
+
+    if device.producer == "unknown":
+        device.producer = "Apple"
+
+    if device.hostname == "unknown":
+        device.hostname = remove_service_from_name(r.rrname.decode('utf8'))
+
+    if device.model == "unknown":
+        model = next(m for m in r.rdata if (lambda x : b'model=' in x)(m))
+        if model != None:
+            model = model.decode('utf8')
+            model = re.sub("model=", "", model)
+            device.model = determine_model(model)
+
 def printer(res, args): 
     examples = res.packets
     while True:
@@ -192,6 +287,8 @@ def printer(res, args):
         if res.packets >= args.count and args.count != 0:
             return
 
+def remove_service_from_name(name):
+    return re.sub("(\._[a-zA-Z\-]+\._(tcp|udp))?\.local\.", "", name)
 
 class Recorder:
     def __init__(self, f, res):
