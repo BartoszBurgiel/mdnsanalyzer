@@ -27,6 +27,14 @@ class Result:
         for s in self.devices.values():
             print("{},{},{},{},{},{}".format(s.hostname, s.producer, s.model,s.ip_address, s.mac_address,s.packets,len(s.services)))
 
+    def json(self):
+        res = '{"devices":['
+        dev = []
+        for s in self.devices.values():
+            dev.append(s.json())
+        res += ",".join(dev)
+        return res + "]}"
+
     def table(self):
         headers = ["name","producer","model", "ip_address","mac_address","packet_count","n_services"]
         data = []

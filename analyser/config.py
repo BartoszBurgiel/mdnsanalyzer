@@ -14,6 +14,7 @@ parser.add_argument('-m', '--mac', nargs="?", type=str, help="Analyse packets wh
 output_group = parser.add_mutually_exclusive_group()
 output_group.add_argument('-csv', help="Print the results in a CSV format", action='store_true')
 output_group.add_argument('-t', '--table', help="Print the results in a pretty table", action='store_true')
+output_group.add_argument('-json', help="Print the results in a JSON format", action='store_true')
 
 input_subparsers = parser.add_subparsers(help="Choose between analyzing a file or live capturing ", dest="input")
 

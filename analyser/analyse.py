@@ -24,14 +24,19 @@ def analysePackets():
             sniff(count=args.count, filter=default_filter, iface=args.interface[0], prn=res.update)
     else:
         for f in args.read_file:
-            print("Analyzing ", f, "...")
+            if args.table or not (args.csv or args.json):
+                print("Analyzing ", f, "...")
+
             sniff(offline=f, filter=default_filter, count=args.count, prn=res.update, quiet=True)
 
     if args.csv:
         res.csv()
     elif args.table:
         res.table()
+    elif args.json:
+        print(res.json())
     else:
         print(res)
 
-    res.print_report()
+    if args.table or not (args.csv or args.json):
+        res.print_report()

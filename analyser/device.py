@@ -106,6 +106,35 @@ class Device:
                 if self.producer == "unknown":
                     self.producer = "Apple"
 
+    def json(self):
+        res = '{' + '"producer":"{}","hostname":"{}","mac_address":"{}","ip_address":"{}","packets":{}'.format(self.producer, self.hostname,self.mac_address,self.ip_address,self.packets)
+
+
+        if self.model != "unknown":
+            res += ',"model":"{}"'.format(self.model)
+        if self.operating_system != "unknown":
+            res += ',"operating_system":"{}"'.format(self.operating_system)
+            
+        if len(self.services) > 0:
+            res += ',"services":'
+            services = []
+            for name, count in self.services.items():
+                services.append('{' + '"name":"{}", "count":{}'.format(name, count) + '}') 
+
+            res += "[" + (",".join(services)) + "]"
+        res += '}'
+        return res
+        # self.producer = "unknown"
+        # self.hostname = "unknown"
+        # self.model = "unknown"
+        # self.operating_system = "unknown"
+
+        # self.mac_address = ""
+        # self.ip_address = ""
+
+        # self.packets = 1
+        # self.services = dict()
+
     def __str__(self):
 
         s = "Hostname: \t\t{}\n".format(self.hostname)

@@ -337,18 +337,25 @@ def analyse_device_info_record(device, r):
         device.hostname = remove_service_from_name(r.rrname.decode('utf8'))
 
     if device.model == "unknown":
-        model = next(m for m in r.rdata if (lambda x : b'model=' in x)(m))
-        if model != None:
-            model = model.decode('utf8')
-            model = re.sub("model=", "", model)
-            device.model = determine_model(model)
+        try:
+            model = next(m for m in r.rdata if (lambda x : b'model=' in x)(m))
+            if model != None:
+                model = model.decode('utf8')
+                model = re.sub("model=", "", model)
+                device.model = determine_model(model)
+        except:
+            return
 
     if "MacBook" in device.hostname and device.operating_system == "unknown":
-        osx = next(m for m in r.rdata if (lambda x : b'osxvers=' in x)(m))
-        if osx != None:
-            osx = osx.decode('utf8')
-            osx = re.sub("osxvers=", "", osx)
-            device.operating_system = osx_code_list[osx]
+        try:
+            osx = next(m for m in r.rdata if (lambda x : b'osxvers=' in x)(m))
+            if osx != None:
+                osx = osx.decode('utf8')
+                osx = re.sub("osxvers=", "", osx)
+                device.operating_system = osx_code_list[osx]
+        except:
+            return
+
 
 def printer(res, args): 
     examples = res.packets
