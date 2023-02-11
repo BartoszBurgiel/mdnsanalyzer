@@ -25,7 +25,7 @@ class Result:
     def csv(self):
         print("name,producer,model,operating_system,ip_address,mac_address,packet_count,services")
         for s in self.devices.values():
-            print("{},{},{},{},{},{},{},{}".format(s.hostname, s.producer, s.model,s.operating_system, s.ip_address, s.mac_address,s.packets,";".join(s.services.keys())))
+            print('"{}",{},"{}","{}",{},{},{},"{}"'.format(s.hostname, s.producer, s.model,s.operating_system, s.ip_address, s.mac_address,s.packets,";".join(s.services.keys())))
 
     def json(self):
         res = '{"devices":['
