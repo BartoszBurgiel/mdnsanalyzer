@@ -12,7 +12,7 @@ from time import sleep
 from analyser.config import args
 
 class Device:
-    def __init__(self, p):
+    def __init__(self, p: scapy.packet.Packet):
         self.producer = "unknown"
         self.hostname = "unknown"
         self.model = "unknown"
@@ -38,7 +38,7 @@ class Device:
 
 
 
-    def update(self, p):
+    def update(self, p: scapy.packet.Packet):
         self.packets = self.packets + 1
         if self.ip_address == "":
             if IP in p:
@@ -54,7 +54,7 @@ class Device:
         if DNSQR in d:
             self.analyse_dnsqr(d)
 
-    def analyse_dnsqr(device, d):
+    def analyse_dnsqr(device, d: scapy.layers.dns.DNSQR):
         count = d.qdcount
 
         for i in range(count):
@@ -81,7 +81,7 @@ class Device:
                 device.hostname = remove_service_from_name(q.qname.decode('utf8'))
 
         
-    def analyse_dnsrr(self, d):
+    def analyse_dnsrr(self, d: scapy.layers.dns.DNSRR):
         count = d.ancount
 
         for i in range(count):
@@ -124,16 +124,24 @@ class Device:
             res += "[" + (",".join(services)) + "]"
         res += '}'
         return res
-        # self.producer = "unknown"
-        # self.hostname = "unknown"
-        # self.model = "unknown"
-        # self.operating_system = "unknown"
 
-        # self.mac_address = ""
-        # self.ip_address = ""
 
-        # self.packets = 1
-        # self.services = dict()
+    def get_similarity_index(self,device):
+        similarity = 0
+
+        if device.hostname == self.hostname: 
+            similarity += 0.5
+        
+        # jaccard-coefficient
+        sset = set(self.services.keys())
+        dset = set(device.services.keys())
+        if len(sset.union(dset)) == 0:
+            return similarity
+
+        similarity += len(sset.intersection(dset)) / len(sset.union(dset))
+
+        return similarity / 2 
+
 
     def __str__(self):
 

@@ -38,5 +38,23 @@ def analysePackets():
     else:
         print(res)
 
+
+    if args.similarity:
+
+        sim = res
+        sim = sim.devices.values()
+        sim = filter(lambda x : x.hostname != "unknown" and len(x.services) != 0, sim)
+        sim = list(sim)
+
+        dev_count = len(sim)
+        adjacency_matrix = [[None] + [x.hostname for x in sim]]
+
+        for d in sim:
+            adjacency_matrix.append([d.hostname] + [d.get_similarity_index(x) for x in sim]) 
+
+        import csv
+        with open(args.similarity[0], "w") as f:
+            writer = csv.writer(f)
+            writer.writerows(adjacency_matrix)
     if args.table or not (args.csv or args.json):
         res.print_report()
