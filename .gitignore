@@ -1,3 +1,4 @@
 *.swp
 *.pcap
 __pycache__
+*.csv
