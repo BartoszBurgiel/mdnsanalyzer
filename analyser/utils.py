@@ -221,12 +221,12 @@ apple_device_list = {
 cache = dict()
 
 
-def determine_model(m):
+def determine_model(m: str):
     if m.endswith("AP") or "MacBook" in m:
         return get_apple_model(m)
     return "unknown_"
 
-def get_apple_model(model):
+def get_apple_model(model: str):
     if model in apple_device_list:
         return apple_device_list[model]
 
@@ -241,7 +241,7 @@ def get_apple_model(model):
 
     id = re.search("[i|I][a-zA-Z]+\d+,\d+(-[A|B])?", body.text)
     if id is None:
-        return "unknown_"
+        return "unknown"
     id = id.group(0)
     if id not in apple_device_list:
         return id
@@ -249,7 +249,7 @@ def get_apple_model(model):
     return cache[model]
 
 
-def analyse_airplay_record(device, r):
+def analyse_airplay_record(device, r: scapy.layers.dns.DNSRR):
     if device.producer == "unknown":
         device.producer = "Apple"
 
@@ -274,7 +274,7 @@ def analyse_airplay_record(device, r):
             device.model = determine_model(model)
         
 
-def analyse_raop_record(device, r):
+def analyse_raop_record(device, r: scapy.layers.dns.DNSRR):
     if device.producer == "unknown":
         device.producer = "Apple"
 
@@ -302,7 +302,7 @@ def analyse_raop_record(device, r):
             model = re.sub("model=", "", model)
             device.model = determine_model(model)
 
-def analyse_mi_connect_record(device, r):
+def analyse_mi_connect_record(device, r: scapy.layers.dns.DNSRR):
     if r.type != 16:
         return
     
@@ -321,7 +321,7 @@ def analyse_mi_connect_record(device, r):
             name = re.sub("name=", "", name)
             device.hostname = name
 
-def analyse_device_info_record(device, r):
+def analyse_device_info_record(device, r: scapy.layers.dns.DNSRR):
     if r.type != 16:
         return 
 

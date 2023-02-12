@@ -1,5 +1,6 @@
 from analyser.device import Device
 from os import system
+from scapy.all import *
 from scapy.layers.l2 import Ether
 from tabulate import tabulate
 from datetime import datetime
@@ -11,7 +12,7 @@ class Result:
         self.start = datetime.now()
         self.devices = dict() 
 
-    def update(self, p):
+    def update(self, p: scapy.packet.Packet):
         self.packets = self.packets + 1
         mac = p[Ether].src
         if mac not in self.devices:

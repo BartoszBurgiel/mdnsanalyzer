@@ -44,6 +44,9 @@ class Device:
             if IP in p:
                 self.ip_address = p[IP].src
 
+            if IPv6 in p:
+                self.ip_address = p[IPv6].src
+
         if DNS not in p:
             return
         d = p[DNS]
