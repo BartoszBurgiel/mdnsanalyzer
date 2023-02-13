@@ -133,7 +133,7 @@ class Device:
         similarity = 0
 
         if device.hostname == self.hostname: 
-            similarity += 0.5
+            similarity += 0.25
         
         # jaccard-coefficient
         sset = set(self.services.keys())
@@ -141,9 +141,9 @@ class Device:
         if len(sset.union(dset)) == 0:
             return similarity
 
-        similarity += len(sset.intersection(dset)) / len(sset.union(dset))
+        similarity += (len(sset.intersection(dset)) / len(sset.union(dset))) * 0.75
 
-        return similarity / 2 
+        return similarity 
 
 
     def __str__(self):

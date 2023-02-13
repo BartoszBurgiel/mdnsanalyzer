@@ -48,6 +48,27 @@ class Result:
         print("Total examined packages: {}\nDuration: {}s\n".format(self.packets, (datetime.now()-self.start).seconds))
 
 
+    def get_similarity_tree(self):
+        sim = self.devices.values()
+        similarity = dict()
+        for d in sim:
+            if d.producer == "unknown" or d.hostname == "unknown" or len(d.services) < 1:
+                continue
+
+            similarity[d.hostname] = dict()
+            for r in sim:
+                s = d.get_similarity_index(r)
+                if s < 0.5:
+                    continue
+                if d.hostname == r.hostname:
+                    similarity[d.hostname][r.mac_address] = s 
+                    continue
+                
+                similarity[d.hostname]['other'] = dict()
+                similarity[d.hostname]['other'][r.mac_address] = s
+
+        return  {k:v for k, v in similarity.items() if len(v) > 2}
+
     def __str__(self):
         out = ""
         for v in self.devices.values():
