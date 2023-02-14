@@ -10,6 +10,7 @@ from analyser.utils import remove_service_from_name
 from tabulate import tabulate
 from time import sleep
 from analyser.config import args
+from statistics import fmean
 
 class Device:
     def __init__(self, p: scapy.packet.Packet):
@@ -23,6 +24,8 @@ class Device:
 
         self.packets = 1
         self.services = dict()
+
+        self.device_info = dict()
 
         if IP in p:
             self.ip_address = p[IP].src
@@ -90,6 +93,16 @@ class Device:
         for i in range(count):
             res = d.an[i]
 
+            if res.type == 16:
+                rdata = res.rdata 
+                for data in rdata:
+                    data = str(data, encoding='utf-8')
+                    if '=' not in data:
+                        continue
+                    data = data.split("=")
+                    key, value = data[0], data[1]
+                    self.device_info[key] = value
+
             if b'airplay' in res.rrname:
                 analyse_airplay_record(self, res)
                 continue 
@@ -104,10 +117,12 @@ class Device:
 
             if b'device-info' in res.rrname:
                 analyse_device_info_record(self, res)
+                continue
 
             if b'companion-link' in res.rrname:
                 if self.producer == "unknown":
                     self.producer = "Apple"
+
 
     def json(self):
         res = '{' + '"producer":"{}","hostname":"{}","mac_address":"{}","ip_address":"{}","packets":{}'.format(self.producer, self.hostname,self.mac_address,self.ip_address,self.packets)
@@ -130,20 +145,39 @@ class Device:
 
 
     def get_similarity_index(self,device):
-        similarity = 0
+        similarity = []
 
         if device.hostname == self.hostname: 
-            similarity += 0.25
+            similarity.append(1)
         
         # jaccard-coefficient
         sset = set(self.services.keys())
         dset = set(device.services.keys())
         if len(sset.union(dset)) == 0:
-            return similarity
+            similarity.append(0)
+        else:
+            similarity.append((len(sset.intersection(dset)) / len(sset.union(dset))))
 
-        similarity += (len(sset.intersection(dset)) / len(sset.union(dset))) * 0.75
 
-        return similarity 
+        sset = set(self.device_info.keys())
+        dset = set(device.device_info.keys())
+        if len(sset.union(dset)) == 0:
+            similarity.append(0)
+        else:
+            similarity.append((len(sset.intersection(dset)) / len(sset.union(dset))))
+
+        device_info_similarity = 0
+        cnt = 0
+        for k,v in self.device_info.items():
+            if k in device.device_info:
+                cnt += 1
+                if device.device_info[k] == self.device_info[k]:
+                    device_info_similarity += 1 
+
+        if cnt != 0:
+            similarity.append(device_info_similarity/cnt)
+        
+        return fmean(similarity) 
 
 
     def __str__(self):
