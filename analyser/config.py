@@ -11,6 +11,7 @@ parser.add_argument('-c', '--count', nargs="?", metavar=100, default=0, type=int
 parser.add_argument('-f', '--filter', nargs="?", help="BFP filter that will be appended to the default MDNS filter: udp port 5353 and ([filter]).")
 parser.add_argument('-m', '--mac', nargs="?", type=str, help="Analyse packets which originate from this mac address.")
 parser.add_argument('-sim', '--similarity', nargs=1, type=str, help="Calculate the similarity between meaningful packets. The value of this flag provides the path to the file where the similarity tree will be saved.")
+parser.add_argument('-thr', '--threshold', nargs=1, type=float, metavar=0.6, default=0.6, help='The threshold of which similarity value is considered relevant. If set, all of the devices with similarities strictly lower than the threshold will be filtered out from the similarity tree.')
 
 output_group = parser.add_mutually_exclusive_group()
 output_group.add_argument('-csv', help="Print the results in a CSV format", action='store_true')

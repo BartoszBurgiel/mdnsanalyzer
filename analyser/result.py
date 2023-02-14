@@ -48,26 +48,33 @@ class Result:
         print("Total examined packages: {}\nDuration: {}s\n".format(self.packets, (datetime.now()-self.start).seconds))
 
 
-    def get_similarity_tree(self):
+    def get_similarity_tree(self, threshold: float):
         sim = self.devices.values()
         similarity = dict()
         for d in sim:
-            if d.producer == "unknown" or d.hostname == "unknown" or len(d.services) < 1:
+            if d.hostname == "unknown" or len(d.services) < 2:
                 continue
 
-            similarity[d.hostname] = dict()
+            similarity[d.hostname] = {'mac_address': d.mac_address, 'similar_devices': []}
             for r in sim:
-                s = d.get_similarity_index(r)
-                if s < 0.5:
-                    continue
-                if d.hostname == r.hostname:
-                    similarity[d.hostname][r.mac_address] = s 
-                    continue
-                
-                similarity[d.hostname]['other'] = dict()
-                similarity[d.hostname]['other'][r.mac_address] = s
 
-        return  {k:v for k, v in similarity.items() if len(v) > 2}
+                if d.hostname == r.hostname and d.mac_address == r.mac_address:
+                    continue
+
+                s = d.get_similarity_index(r)
+                if s < threshold:
+                    continue
+
+                o = {
+                        'name': r.hostname,
+                        'mac_address': r.mac_address,
+                        'similarity': s
+                        }
+                similarity[d.hostname]['similar_devices'].append(o) 
+                continue
+                
+        # return  {k:v for k, v in similarity.items() if len(v['similar_devices']) > 0}
+        return similarity
 
     def __str__(self):
         out = ""

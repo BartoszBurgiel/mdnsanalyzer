@@ -39,7 +39,7 @@ def analysePackets():
         print(res)
 
     if args.similarity:
-        similarity = res.get_similarity_tree()
+        similarity = res.get_similarity_tree(args.threshold[0])
 
         import json
         with open(args.similarity[0], 'w') as fp:

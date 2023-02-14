@@ -149,6 +149,7 @@ class Device:
 
         if device.hostname == self.hostname: 
             similarity.append(1)
+            similarity.append(1)
         
         # jaccard-coefficient
         sset = set(self.services.keys())
@@ -159,23 +160,23 @@ class Device:
             similarity.append((len(sset.intersection(dset)) / len(sset.union(dset))))
 
 
-        sset = set(self.device_info.keys())
-        dset = set(device.device_info.keys())
-        if len(sset.union(dset)) == 0:
-            similarity.append(0)
-        else:
-            similarity.append((len(sset.intersection(dset)) / len(sset.union(dset))))
+        # sset = set(self.device_info.keys())
+        # dset = set(device.device_info.keys())
+        # if len(sset.union(dset)) == 0:
+            # similarity.append(0)
+        # else:
+            # similarity.append((len(sset.intersection(dset)) / len(sset.union(dset))))
 
-        device_info_similarity = 0
-        cnt = 0
-        for k,v in self.device_info.items():
-            if k in device.device_info:
-                cnt += 1
-                if device.device_info[k] == self.device_info[k]:
-                    device_info_similarity += 1 
+        # device_info_similarity = 0
+        # cnt = 0
+        # for k,v in self.device_info.items():
+            # if k in device.device_info:
+                # cnt += 1
+                # if device.device_info[k] == self.device_info[k]:
+                    # device_info_similarity += 1 
 
-        if cnt != 0:
-            similarity.append(device_info_similarity/cnt)
+        # if cnt != 0:
+            # similarity.append(device_info_similarity/cnt)
         
         return fmean(similarity) 
 
