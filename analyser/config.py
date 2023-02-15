@@ -10,7 +10,8 @@ parser = argparse.ArgumentParser(
 parser.add_argument('-c', '--count', nargs="?", metavar=100, default=0, type=int, help="Analyze only this many packets. Applies both to the file and the live capturing. 0 means infinite amount of packets")
 parser.add_argument('-f', '--filter', nargs="?", help="BFP filter that will be appended to the default MDNS filter: udp port 5353 and ([filter]).")
 parser.add_argument('-m', '--mac', nargs="?", type=str, help="Analyse packets which originate from this mac address.")
-parser.add_argument('-sim', '--similarity', nargs=1, type=str, help="Calculate the similarity between meaningful packets. The value of this flag provides the path to the file where the similarity tree will be saved.")
+parser.add_argument('-sim', '--similarity', nargs=1, type=str, help="Calculate the similarity between observed devices. The value of this flag provides the path to the file where the similarity tree will be saved. The similarity is the dot product of the following value vector: [(1/0 if the hostnames are equal), (jaccard-coefficient between the observed services), (jaccard-coefficient between the observed device information)] and the following weights vector: [2,1,2], divided by 5. Setting the threshold at 0.6 shows devices which could be considered similar.")
+parser.add_argument('-v', '--values', nargs=1, type=bool, default=False, help="Show the full similarity array as defined in the --similarity flag.")
 parser.add_argument('-thr', '--threshold', nargs=1, type=float, metavar=0.6, default=0.6, help='The threshold of which similarity value is considered relevant. If set, all of the devices with similarities strictly lower than the threshold will be filtered out from the similarity tree.')
 
 output_group = parser.add_mutually_exclusive_group()

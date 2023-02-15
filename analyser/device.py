@@ -10,7 +10,7 @@ from analyser.utils import remove_service_from_name
 from tabulate import tabulate
 from time import sleep
 from analyser.config import args
-from statistics import fmean
+from numpy import dot
 
 class Device:
     def __init__(self, p: scapy.packet.Packet):
@@ -26,6 +26,7 @@ class Device:
         self.services = dict()
 
         self.device_info = dict()
+        self._weights = [2,1,2]
 
         if IP in p:
             self.ip_address = p[IP].src
@@ -148,8 +149,9 @@ class Device:
         similarity = []
 
         if device.hostname == self.hostname: 
-            similarity.append(1)
-            similarity.append(1)
+            similarity += [1]
+        else:
+            similarity += [0]
         
         # jaccard-coefficient
         sset = set(self.services.keys())
@@ -167,18 +169,20 @@ class Device:
         # else:
             # similarity.append((len(sset.intersection(dset)) / len(sset.union(dset))))
 
-        # device_info_similarity = 0
-        # cnt = 0
-        # for k,v in self.device_info.items():
-            # if k in device.device_info:
-                # cnt += 1
-                # if device.device_info[k] == self.device_info[k]:
-                    # device_info_similarity += 1 
+        device_info_similarity = 0
+        cnt = 0
+        for k,v in self.device_info.items():
+            if k in device.device_info:
+                cnt += 1
+                if device.device_info[k] == self.device_info[k]:
+                    device_info_similarity += 1 
 
-        # if cnt != 0:
-            # similarity.append(device_info_similarity/cnt)
+        if cnt != 0:
+            similarity+= [device_info_similarity/cnt]
+        else:
+            similarity += [0]
         
-        return fmean(similarity) 
+        return dot(similarity, self._weights) / 5, similarity
 
 
     def __str__(self):

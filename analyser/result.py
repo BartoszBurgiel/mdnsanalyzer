@@ -48,7 +48,7 @@ class Result:
         print("Total examined packages: {}\nDuration: {}s\n".format(self.packets, (datetime.now()-self.start).seconds))
 
 
-    def get_similarity_tree(self, threshold: float):
+    def get_similarity_tree(self, threshold: float, show_values: bool):
         sim = self.devices.values()
         similarity = dict()
         for d in sim:
@@ -61,7 +61,7 @@ class Result:
                 if d.hostname == r.hostname and d.mac_address == r.mac_address:
                     continue
 
-                s = d.get_similarity_index(r)
+                s, v = d.get_similarity_index(r)
                 if s < threshold:
                     continue
 
@@ -70,11 +70,13 @@ class Result:
                         'mac_address': r.mac_address,
                         'similarity': s
                         }
+                if show_values:
+                    o['values'] = v
+
                 similarity[d.hostname]['similar_devices'].append(o) 
                 continue
                 
-        # return  {k:v for k, v in similarity.items() if len(v['similar_devices']) > 0}
-        return similarity
+        return  {k:v for k, v in similarity.items() if len(v['similar_devices']) > 0}
 
     def __str__(self):
         out = ""
