@@ -11,6 +11,7 @@ from tabulate import tabulate
 from time import sleep
 from analyser.config import args
 from numpy import dot
+from datetime import datetime
 
 class Device:
     def __init__(self, p: scapy.packet.Packet):
@@ -18,6 +19,8 @@ class Device:
         self.hostname = "unknown"
         self.model = "unknown"
         self.operating_system = "unknown"
+
+        self.observations = dict()
 
         self.mac_address = ""
         self.ip_address = ""
@@ -41,6 +44,21 @@ class Device:
             self.analyse_dnsqr(d)
 
 
+    def update_times(self, t: int):
+        formatted = datetime.utcfromtimestamp(t).strftime('%Y-%m-%d,%H:%M:%S').split(',')
+        date = formatted[0]
+        time = formatted[1]
+
+        if date not in self.observations:
+            self.observations[date] = {'first': time, 'first_unix':t, 'last': time, 'last_unix': t, 'count': 1}
+        else:
+            self.observations[date]['count'] += 1
+            if t > self.observations[date]['last_unix']:
+                self.observations[date]['last'] = time
+                self.observations[date]['last_unix'] = t
+            elif t < self.observations[date]['first_unix']:
+                self.observations[date]['first'] = time
+                self.observations[date]['first_unix'] = t
 
     def update(self, p: scapy.packet.Packet):
         self.packets = self.packets + 1
@@ -51,6 +69,9 @@ class Device:
             if IPv6 in p:
                 self.ip_address = p[IPv6].src
 
+        t = int(p.time // 1)
+        self.update_times(t)
+        
         if DNS not in p:
             return
         d = p[DNS]
@@ -124,25 +145,6 @@ class Device:
                 if self.producer == "unknown":
                     self.producer = "Apple"
 
-
-    def json(self):
-        res = '{' + '"producer":"{}","hostname":"{}","mac_address":"{}","ip_address":"{}","packets":{}'.format(self.producer, self.hostname,self.mac_address,self.ip_address,self.packets)
-
-
-        if self.model != "unknown":
-            res += ',"model":"{}"'.format(self.model)
-        if self.operating_system != "unknown":
-            res += ',"operating_system":"{}"'.format(self.operating_system)
-            
-        if len(self.services) > 0:
-            res += ',"services":'
-            services = []
-            for name, count in self.services.items():
-                services.append('{' + '"name":"{}", "count":{}'.format(name, count) + '}') 
-
-            res += "[" + (",".join(services)) + "]"
-        res += '}'
-        return res
 
 
     def get_similarity_index(self,device):

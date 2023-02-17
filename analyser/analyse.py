@@ -34,7 +34,7 @@ def analysePackets():
     elif args.table:
         res.table()
     elif args.json:
-        print(res.json())
+        print(res.toJSON())
     else:
         print(res)
 

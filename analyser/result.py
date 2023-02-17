@@ -4,6 +4,7 @@ from scapy.all import *
 from scapy.layers.l2 import Ether
 from tabulate import tabulate
 from datetime import datetime
+import json
 
 class Result:
 
@@ -28,13 +29,23 @@ class Result:
         for s in self.devices.values():
             print('"{}",{},"{}","{}",{},{},{},"{}"'.format(s.hostname, s.producer, s.model,s.operating_system, s.ip_address, s.mac_address,s.packets,";".join(s.services.keys())))
 
-    def json(self):
-        res = '{"devices":['
-        dev = []
-        for s in self.devices.values():
-            dev.append(s.json())
-        res += ",".join(dev)
-        return res + "]}"
+    def toJSON(self):
+        res = {
+                "devices": []
+                }
+        for d in self.devices.values():
+            res['devices'].append({
+                "producer": d.producer,
+                "hostname": d.hostname,
+                "model": d.model,
+                "operating_system": d.operating_system,
+                "mac_address": d.mac_address,
+                "ip_address": d.ip_address,
+                "observations": dict(sorted(d.observations.items())),
+                "packets": d.packets,
+                "services": d.services
+                })
+        return json.dumps(res)
 
     def table(self):
         headers = ["name","producer","model", "ip_address","mac_address","packet_count","n_services"]
