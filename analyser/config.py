@@ -13,6 +13,7 @@ parser.add_argument('-m', '--mac', nargs="?", type=str, help="Analyse packets wh
 parser.add_argument('-sim', '--similarity', nargs=1, type=str, help="Calculate the similarity between observed devices. The value of this flag provides the path to the file where the similarity tree will be saved. The similarity is the dot product of the following value vector: [(1/0 if the hostnames are equal), (jaccard-coefficient between the observed services), (jaccard-coefficient between the observed device information)] and the following weights vector: [2,1,2], divided by 5. Setting the threshold at 0.6 shows devices which could be considered similar.")
 parser.add_argument('-v', '--values', action='store_true', help="Show the full similarity array as defined in the --similarity flag.")
 parser.add_argument('-thr', '--threshold', nargs=1, type=float, metavar=0.6, default=0.6, help='The threshold of which similarity value is considered relevant. If set, all of the devices with similarities strictly lower than the threshold will be filtered out from the similarity tree.')
+parser.add_argument('-tim', '--times',  action='store_true', help="Display the observations of the device in the output JSON")
 
 output_group = parser.add_mutually_exclusive_group()
 output_group.add_argument('-csv', help="Print the results in a CSV format", action='store_true')

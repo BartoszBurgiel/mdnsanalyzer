@@ -29,7 +29,7 @@ class Result:
         for s in self.devices.values():
             print('"{}",{},"{}","{}",{},{},{},"{}"'.format(s.hostname, s.producer, s.model,s.operating_system, s.ip_address, s.mac_address,s.packets,";".join(s.services.keys())))
 
-    def toJSON(self):
+    def toJSON(self, times: bool) -> str:
         res = {
                 "devices": []
                 }
@@ -41,7 +41,7 @@ class Result:
                 "operating_system": d.operating_system,
                 "mac_address": d.mac_address,
                 "ip_address": d.ip_address,
-                "observations": dict(sorted(d.observations.items())),
+                "observations": dict(sorted(d.observations.items())) if times else {},
                 "packets": d.packets,
                 "services": d.services
                 })
